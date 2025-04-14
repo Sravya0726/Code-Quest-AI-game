@@ -1,0 +1,379 @@
+<header>
+    <h1>Round 3: Sequence the Steps</h1>
+  </header>
+  <p>Teams must arrange 3 processes into correct step order. 1 minute per process. Qualify by getting 1 correct!</p>
+  
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Round 3 - Sequence the Steps</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      body {
+        
+        font-family: 'Segoe UI', sans-serif;
+        background: #0b132b;
+        color: #ffffff;
+        padding: 20px;
+        margin: 0;
+      }
+      header {
+        text-align: center;
+        background-color: #1c2541;
+        padding: 20px;
+        font-size: 28px;
+        font-weight: bold;
+      }
+      #timer {
+        text-align: center;
+        font-size: 24px;
+        color: #ffcc00;
+        margin-top: 10px;
+      }
+      .container {
+        max-width: 700px;
+        margin: 30px auto;
+        background: #1c2541;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+      }
+      h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #ffffff;
+      }
+      .steps {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .step-box {
+        background-color: #3a506b;
+        padding: 15px;
+        border-radius: 6px;
+        cursor: grab;
+        user-select: none;
+        font-size: 16px;
+        border: 2px solid #5bc0be;
+        transition: background 0.2s;
+      }
+      .step-box.dragging {
+        opacity: 0.5;
+      }
+      .btn {
+        margin-top: 25px;
+        padding: 12px 24px;
+        background-color: #5bc0be;
+        border: none;
+        color: #000;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 6px;
+        cursor: pointer;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .btn:hover {
+        background-color: #64dfdf;
+      }
+      
+    </style>
+  </head>
+  <div class="text-center py-4 bg-blue-500 text-white text-3xl font-bold">Round 3: Sequence the Steps</div>
+<div class="text-center py-2 text-white bg-gray-900">Teams must arrange 3 processes into correct step order. 1 minute per process. Qualify by getting 1 correct!</div>
+
+<div class="flex flex-col items-center mt-6">
+  <h2 class="text-2xl font-bold text-white mb-2">Round 3: Sequence the Steps</h2>
+  <p id="timer" class="text-yellow-400 text-xl mb-4">Time Left: 60s</p>
+
+  <button id="startBtn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded mb-4">Start</button>
+
+  <h3 id="question" class="text-white text-xl font-semibold mb-4"></h3>
+
+  <ul id="options" class="space-y-2 w-full max-w-md"></ul>
+
+  <button id="submitBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 mt-4 rounded hidden">Submit</button>
+
+  <p id="result" class="text-white mt-4 font-bold"></p>
+</div>
+<script>
+  function saveRoundData(roundName, score, answersArray) {
+    const teamName = localStorage.getItem("teamName");
+    const department = localStorage.getItem("department");
+  
+    if (!teamName) return;
+  
+    let responses = JSON.parse(localStorage.getItem("orsa_responses")) || {};
+  
+    if (!responses[teamName]) {
+      responses[teamName] = {
+        department: department,
+        rounds: {}
+      };
+    }
+  
+    responses[teamName].rounds[roundName] = {
+      score: score,
+      answers: answersArray
+    };
+  
+    localStorage.setItem("orsa_responses", JSON.stringify(responses));
+  }
+  </script>
+  
+<script>
+  
+  timer;
+ timeLeft = 60;
+
+  const startBtn = document.getElementById('startBtn');
+  const submitBtn = document.getElementById('submitBtn');
+  const question = document.getElementById('question');
+  const options = document.getElementById('options');
+  const result = document.getElementById('result');
+  const timerDisplay = document.getElementById('timer');
+
+    const questions = [
+    {
+      question: 'Process of Photosynthesis',
+      correctOrder: [
+        'Absorption of sunlight by chlorophyll',
+        'Conversion of light energy to chemical energy',
+        'Splitting of water into hydrogen and oxygen',
+        'Release of oxygen',
+        'Formation of glucose'
+      ]
+    },
+    {
+      question: 'Software Development Lifecycle',
+      correctOrder: [
+        'Requirement Gathering',
+        'Design',
+        'Development',
+        'Testing',
+        'Deployment'
+      ]
+    }
+  ];
+
+  let currentQuestion = {};
+  let currentSteps = [];
+
+  function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
+  function renderOptions() {
+    options.innerHTML = '';
+    currentSteps.forEach((step, index) => {
+      const li = document.createElement('li');
+      li.className = 'bg-white text-black px-4 py-2 rounded cursor-move';
+      li.draggable = true;
+      li.textContent = step;
+      li.dataset.index = index;
+
+      li.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', index);
+      });
+
+      li.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        li.classList.add('bg-gray-300');
+      });
+
+      li.addEventListener('dragleave', () => {
+        li.classList.remove('bg-gray-300');
+      });
+
+      li.addEventListener('drop', (e) => {
+        e.preventDefault();
+        li.classList.remove('bg-gray-300');
+        const draggedIndex = parseInt(e.dataTransfer.getData('text/plain'));
+        const droppedIndex = index;
+
+        // Swap the steps
+        const temp = currentSteps[draggedIndex];
+        currentSteps[draggedIndex] = currentSteps[droppedIndex];
+        currentSteps[droppedIndex] = temp;
+
+        renderOptions(); // Re-render to reflect updated order
+      });
+
+      options.appendChild(li);
+    });
+  }
+
+  function startRound() {
+    const q = questions[Math.floor(Math.random() * questions.length)];
+    currentQuestion = q;
+    currentSteps = shuffleArray(q.correctOrder);
+
+    question.textContent = q.question;
+    renderOptions();
+
+    startBtn.style.display = 'none';
+    submitBtn.classList.remove('hidden');
+    result.textContent = '';
+    timeLeft = 60;
+    timerDisplay.textContent = `Time Left: ${timeLeft}s`;
+
+    timer = setInterval(() => {
+      timeLeft--;
+      timerDisplay.textContent = `Time Left: ${timeLeft}s`;
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        submitBtn.disabled = true;
+        result.textContent = "⏰ Time's up!";
+        result.classList.remove('text-green-400', 'text-red-400');
+        result.classList.add('text-yellow-400');
+      }
+    }, 1000);
+  }
+
+  function checkAnswer() {
+    clearInterval(timer);
+    const userOrder = Array.from(options.children).map(li => li.textContent.trim());
+    const correctOrder = currentQuestion.correctOrder;
+
+    if (JSON.stringify(userOrder) === JSON.stringify(correctOrder)) {
+      result.textContent = '✅ Correct!';
+      result.classList.remove('text-red-400', 'text-yellow-400');
+      result.classList.add('text-green-400');
+    } else {
+      result.textContent = '❌ Incorrect! Try Again.';
+      result.classList.remove('text-green-400', 'text-yellow-400');
+      result.classList.add('text-red-400');
+    }
+    submitBtn.disabled = true;
+  }
+
+  startBtn.addEventListener('click', startRound);
+  submitBtn.addEventListener('click', checkAnswer);
+</script>
+
+</body>
+    <header>Round 3: Sequence the Steps</header>
+    <div id="timer">Time Left: 60s</div>
+    <div class="container">
+      <h2 id="process-title">Process 1</h2>
+      <div class="steps" id="steps-container"></div>
+      <button class="btn" onclick="submitAnswer()">Submit</button>
+    </div>
+  
+    <script>
+      const processes = [
+        {
+          title: "Process of Photosynthesis",
+          correctOrder: [
+            "Absorption of sunlight by chlorophyll",
+            "Conversion of light energy to chemical energy",
+            "Splitting of water into hydrogen and oxygen",
+            "Release of oxygen",
+            "Formation of glucose"
+          ]
+        },
+        {
+          title: "Compilation of a C Program",
+          correctOrder: [
+            "Writing the source code",
+            "Preprocessing",
+            "Compilation",
+            "Assembly",
+            "Linking",
+            "Execution"
+          ]
+        },
+        {
+          title: "Steps in Scientific Method",
+          correctOrder: [
+            "Observation",
+            "Question",
+            "Hypothesis",
+            "Experiment",
+            "Analysis",
+            "Conclusion"
+          ]
+        }
+      ];
+  
+      let currentProcessIndex = 0;
+      let shuffledSteps = [];
+      let timer;
+      let timeLeft = 60;
+      let score = 0;
+  
+      function shuffleArray(array) {
+        return array.sort(() => Math.random() - 0.5);
+      }
+  
+      function startTimer() {
+        clearInterval(timer);
+        timeLeft = 60;
+        document.getElementById('timer').textContent = `Time Left: ${timeLeft}s`;
+        timer = setInterval(() => {
+          timeLeft--;
+          document.getElementById('timer').textContent = `Time Left: ${timeLeft}s`;
+          if (timeLeft <= 0) {
+            clearInterval(timer);
+            submitAnswer();
+          }
+        }, 1000);
+      }
+  
+      function loadProcess() {
+        const process = processes[currentProcessIndex];
+        document.getElementById('process-title').textContent = process.title;
+        shuffledSteps = shuffleArray([...process.correctOrder]);
+        const container = document.getElementById('steps-container');
+        container.innerHTML = '';
+        shuffledSteps.forEach((step, index) => {
+          const div = document.createElement('div');
+          div.className = 'step-box';
+          div.draggable = true;
+          div.textContent = step;
+          div.id = 'step-' + index;
+          container.appendChild(div);
+        });
+        addDragDrop();
+        startTimer();
+      }
+  
+      function addDragDrop() {
+        const draggables = document.querySelectorAll('.step-box');
+        const container = document.getElementById('steps-container');
+  
+        dr
+        saveTeamResponse("Tech Riddles", score, playerAnswersArray);
+        function saveTeamResponse(round, score, answers) {
+  const teamName = localStorage.getItem("teamName");
+  const department = localStorage.getItem("department");
+
+  if (!teamName || !department) return;
+
+  let stored = JSON.parse(localStorage.getItem("orsa_responses")) || {};
+
+  if (!stored[teamName]) {
+    stored[teamName] = {
+      department: department,
+      rounds: {}
+    };
+  }
+
+  stored[teamName].rounds[round] = {
+    score: score,
+    answers: answers
+  };
+
+  localStorage.setItem("orsa_responses", JSON.stringify(stored));
+}
+
+      }  

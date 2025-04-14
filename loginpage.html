@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login – CodeQuest</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #0f172a;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+    }
+
+    .login-container {
+      background-color: #1e293b;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      width: 350px;
+      text-align: center;
+    }
+
+    .login-container h2 {
+      font-size: 26px;
+      margin-bottom: 20px;
+      color: #60a5fa;
+    }
+
+    .login-container input {
+      display: block;
+      width: 90%;
+      margin: 12px auto;
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #334155;
+      color: white;
+    }
+
+    .login-container button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      color: white;
+      background-color: #3b82f6;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .login-container button:hover {
+      background-color: #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Login to Start CodeQuest</h2>
+    <form action="round1.html" method="get">
+      <input type="text" name="team" placeholder="Team Name" required />
+      <input type="text" name="branch" placeholder="Your Branch" required />
+      <button type="submit">Start Game</button>
+    </form>
+  </div>
+</body>
+</html>
+
+<script>function loginAndStart() {
+  const teamName = document.getElementById("teamName").value;
+  const department = document.getElementById("department").value;
+
+  if (teamName && department) {
+    localStorage.setItem("teamName", teamName);
+    localStorage.setItem("department", department);
+
+    // Redirect to Round 1
+    window.location.href = "riddle_round.html"; // change this to your Round 1 filename
+  } else {
+    alert("Please enter both team name and department.");
+  }
+}
+localStorage.setItem("teamName", teamName);
+localStorage.setItem("department", department);
+
+</script>
