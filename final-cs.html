@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Round 4: Code Scramble</title>
+  <style>
+    body {
+      background-color: #0b1120;
+      color: #ffffff;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    #timer {
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    select, button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 1rem;
+      border-radius: 5px;
+    }
+
+    #branch-section, #game-section {
+      margin-top: 2rem;
+    }
+
+    #error {
+      color: red;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+
+    .code-container {
+      width: 60%;
+      margin: 0 auto;
+      background: #1f2937;
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    .code-line {
+      background-color: #374151;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: move;
+      font-family: monospace;
+      font-size: 1rem;
+    }
+
+    #submitBtn {
+      margin-top: 1rem;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 5px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    #resultMsg {
+      margin-top: 1rem;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Round 4: Code Scramble</h1>
+
+  <div id="branch-section">
+    <label for="branch">Select your branch:</label>
+    <select id="branch">
+      <option value="">-- Select Branch --</option>
+      <option value="CSE">CSE</option>
+      <option value="CSM">CSM</option>
+      <option value="CSD">CSD</option>
+      <option value="ECE">ECE</option>
+      <option value="MECH">MECH</option>
+    </select>
+    <button onclick="startRound()">Start Round</button>
+    <div id="error"></div>
+  </div>
+
+  <div id="game-section" style="display: none;">
+    <div id="timer">Time Left: 60s</div>
+    <div id="codeContainer" class="code-container"></div>
+    <button id="submitBtn" onclick="checkOrder()">Submit</button>
+    <div id="resultMsg" style="display: none;"></div>
+  </div>
+  <script>
+    function saveRoundData(roundName, score, answersArray) {
+      const teamName = localStorage.getItem("teamName");
+      const department = localStorage.getItem("department");
+    
+      if (!teamName) return;
+    
+      let responses = JSON.parse(localStorage.getItem("orsa_responses")) || {};
+    
+      if (!responses[teamName]) {
+        responses[teamName] = {
+          department: department,
+          rounds: {}
+        };
+      }
+    
+      responses[teamName].rounds[roundName] = {
+        score: score,
+        answers: answersArray
+      };
+    
+      localStorage.setItem("orsa_responses", JSON.stringify(responses));
+    }
+    </script>
+    
+  <script>
+    const allowedBranches = ["CSE", "CSM", "CSD"];
+    const correctCode = [
+      "function greet(name) {",
+      "console.log('Hello ' + name);",
+      "}",
+      "greet('Sravya');"
+    ];
+
+    const container = document.getElementById("codeContainer");
+    const resultMsg = document.getElementById("resultMsg");
+    const submitBtn = document.getElementById("submitBtn");
+    const gameSection = document.getElementById("game-section");
+    const branchSection = document.getElementById("branch-section");
+    const errorDiv = document.getElementById("error");
+
+    let timeLeft = 60;
+    let timer;
+
+    function startRound() {
+      const branch = document.getElementById("branch").value;
+      if (!allowedBranches.includes(branch)) {
+        errorDiv.textContent = "Sorry, this round is only for CSE, CSM, and CSD branches.";
+        return;
+      }
+      errorDiv.textContent = "";
+      branchSection.style.display = "none";
+      gameSection.style.display = "block";
+      startGame();
+    }
+
+    function startGame() {
+      startTimer();
+      const scrambled = [...correctCode].sort(() => 0.5 - Math.random());
+      container.innerHTML = "";
+      scrambled.forEach(line => {
+        const div = document.createElement("div");
+        div.className = "code-line";
+        div.draggable = true;
+        div.textContent = line;
+        container.appendChild(div);
+      });
+      enableDragAndDrop();
+    }
+
+    function startTimer() {
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = `Time Left: ${timeLeft}s`;
+        if (timeLeft === 0) {
+          clearInterval(timer);
+          submitBtn.disabled = true;
+          resultMsg.textContent = "⏰ Time's up!";
+          resultMsg.style.display = "block";
+        }
+      }, 1000);
+    }
+
+    function checkOrder() {
+      const lines = [...document.querySelectorAll(".code-line")].map(div => div.textContent.trim());
+      const normalizedCorrect = correctCode.map(line => line.trim());
+      const isCorrect = JSON.stringify(lines) === JSON.stringify(normalizedCorrect);
+
+      resultMsg.textContent = isCorrect ? "✅ Correct Order! Well Done." : "❌ Incorrect Order. Try Again.";
+      resultMsg.style.display = "block";
+
+      if (isCorrect) {
+        clearInterval(timer);
+        submitBtn.disabled = true;
+      } else {
+        setTimeout(() => {
+          resultMsg.style.display = "none";
+        }, 2000);
+      }
+    }
+
+    function enableDragAndDrop() {
+      const codeLines = document.querySelectorAll(".code-line");
+      let draggedItem = null;
+
+      codeLines.forEach(line => {
+        line.addEventListener("dragstart", () => {
+          draggedItem = line;
+          setTimeout(() => line.style.display = "none", 0);
+        });
+
+        line.addEventListener("dragend", () => {
+          setTimeout(() => {
+            draggedItem.style.display = "block";
+            draggedItem = null;
+          }, 0);
+        });
+
+        line.addEventListener("dragover", e => e.preventDefault());
+
+        line.addEventListener("drop", e => {
+          e.preventDefault();
+          if (draggedItem !== line) {
+            const container = line.parentNode;
+            const nodes = Array.from(container.children);
+            const draggedIndex = nodes.indexOf(draggedItem);
+            const droppedIndex = nodes.indexOf(line);
+            if (draggedIndex < droppedIndex) {
+              container.insertBefore(draggedItem, line.nextSibling);
+            } else {
+              container.insertBefore(draggedItem, line);
+            }
+          }
+        });
+      });
+      saveTeamResponse("Tech Riddles", score, playerAnswersArray);
+      function saveTeamResponse(round, score, answers) {
+  const teamName = localStorage.getItem("teamName");
+  const department = localStorage.getItem("department");
+
+  if (!teamName || !department) return;
+
+  let stored = JSON.parse(localStorage.getItem("orsa_responses")) || {};
+
+  if (!stored[teamName]) {
+    stored[teamName] = {
+      department: department,
+      rounds: {}
+    };
+  }
+
+  stored[teamName].rounds[round] = {
+    score: score,
+    answers: answers
+  };
+
+  localStorage.setItem("orsa_responses", JSON.stringify(stored));
+}
+
+    }
+  </script>
+</body>
+</html>

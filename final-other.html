@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Round 5: Debate Against AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body {
+      background-color: #1e293b;
+      color: #f8fafc;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    #branch-section, #game-section {
+      margin-top: 2rem;
+    }
+    select, button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 1rem;
+      border-radius: 5px;
+    }
+    #error {
+      color: red;
+      font-weight: bold;
+    }
+    #topic {
+      font-size: 1.5rem;
+      margin-top: 1rem;
+      margin-bottom: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Round 5: Debate Against AI</h1>
+
+  <!-- Branch Selection Section -->
+  <div id="branch-section">
+    <p>Only ECE and MECH students are allowed in this round.</p>
+    <label for="branch">Select your branch:</label>
+    <select id="branch">
+      <option value="">--Select Branch--</option>
+      <option value="ECE">ECE</option>
+      <option value="MECH">MECH</option>
+      <option value="CSE">CSE</option>
+      <option value="CSM">CSM</option>
+      <option value="CSD">CSD</option>
+    </select>
+    <br />
+    <button onclick="validateBranch()">Continue</button>
+    <div id="error"></div>
+  </div>
+
+  <!-- Game Section -->
+  <div id="game-section" style="display: none;">
+    <p id="topic"></p>
+    <p id="debateMessage">
+      Debate the given topic with your team and AI. The judgment will be given offline by the panel.
+    </p>
+  </div>
+  <script>
+    function saveRoundData(roundName, score, answersArray) {
+      const teamName = localStorage.getItem("teamName");
+      const department = localStorage.getItem("department");
+    
+      if (!teamName) return;
+    
+      let responses = JSON.parse(localStorage.getItem("orsa_responses")) || {};
+    
+      if (!responses[teamName]) {
+        responses[teamName] = {
+          department: department,
+          rounds: {}
+        };
+      }
+    
+      responses[teamName].rounds[roundName] = {
+        score: score,
+        answers: answersArray
+      };
+    
+      localStorage.setItem("orsa_responses", JSON.stringify(responses));
+    }
+    </script>
+    
+  <script>
+    const allowedBranches = ["ECE", "MECH"];
+    const topics = [
+      "The role of AI in modern robotics and automation.",
+      "How renewable energy technologies are shaping industrial progress.",
+      "The future of electric vehicles and their impact on the environment.",
+      "Can machines ever truly replace human creativity?",
+      "Impact of AI on employment in manufacturing sectors."
+    ];
+
+    function validateBranch() {
+      const branch = document.getElementById("branch").value.trim().toUpperCase();
+      if (allowedBranches.includes(branch)) {
+        document.getElementById("error").textContent = "";
+        document.getElementById("branch-section").style.display = "none";
+        document.getElementById("game-section").style.display = "block";
+        startGame();
+      } else {
+        document.getElementById("error").textContent = "Access denied. This round is only for ECE and MECH students.";
+      }
+    }
+
+    function startGame() {
+      const randomIndex = Math.floor(Math.random() * topics.length);
+      const topic = topics[randomIndex];
+      document.getElementById("topic").textContent = "Debate Topic: " + topic;
+      saveTeamResponse("Tech Riddles", score, playerAnswersArray);
+      function saveTeamResponse(round, score, answers) {
+  const teamName = localStorage.getItem("teamName");
+  const department = localStorage.getItem("department");
+
+  if (!teamName || !department) return;
+
+  let stored = JSON.parse(localStorage.getItem("orsa_responses")) || {};
+
+  if (!stored[teamName]) {
+    stored[teamName] = {
+      department: department,
+      rounds: {}
+    };
+  }
+
+  stored[teamName].rounds[round] = {
+    score: score,
+    answers: answers
+  };
+
+  localStorage.setItem("orsa_responses", JSON.stringify(stored));
+}
+
+    }
+  </script>
+</body>
+</html>

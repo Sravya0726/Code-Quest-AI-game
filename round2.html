@@ -1,0 +1,202 @@
+<header>
+    <h1>Round 2: AI Bluff – Truth or Fake</h1>
+  </header>
+  <p>Decide whether the given 5 statements are true or fake. 35 seconds each. Get at least 2 correct to qualify.</p>
+  
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Round 2: AI Bluff – Truth or Fake</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      body {
+        font-family: 'Segoe UI', sans-serif;
+        background-color: #0d1117;
+        color: #f0f6fc;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40px 20px;
+      }
+      h1 {
+        color: #fbfcfd;
+        margin-bottom: 10px;
+      }
+      .statement-box {
+        background-color: #161b22;
+        border: 1px solid #30363d;
+        padding: 30px;
+        border-radius: 12px;
+        max-width: 700px;
+        text-align: center;
+        margin: 20px 0;
+        font-size: 20px;
+      }
+      .buttons {
+        margin-top: 20px;
+      }
+      .buttons button {
+        background-color: #238636;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        margin: 0 10px;
+        font-size: 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+      .buttons button:hover {
+        background-color: #2ea043;
+      }
+      #timer {
+        font-size: 24px;
+        color: #f0f6fc;
+        margin: 15px;
+      }
+      #result {
+        font-size: 20px;
+        font-weight: bold;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Round 2: AI Bluff – Truth or Fake</h1>
+    <div id="timer">Time left: 35s</div>
+    <div class="statement-box" id="statementBox">Click "Start" to begin!</div>
+    <div class="buttons">
+      <button onclick="submitAnswer(true)">True</button>
+      <button onclick="submitAnswer(false)">Fake</button>
+      <button onclick="startGame()">Start</button>
+    </div>
+    <div id="result"></div>
+  
+    <audio id="correctSound" src="sounds/correct.mp3"></audio>
+    <audio id="wrongSound" src="sounds/wrong.mp3"></audio>
+    <script>
+      function saveRoundData(roundName, score, answersArray) {
+        const teamName = localStorage.getItem("teamName");
+        const department = localStorage.getItem("department");
+      
+        if (!teamName) return;
+      
+        let responses = JSON.parse(localStorage.getItem("orsa_responses")) || {};
+      
+        if (!responses[teamName]) {
+          responses[teamName] = {
+            department: department,
+            rounds: {}
+          };
+        }
+      
+        responses[teamName].rounds[roundName] = {
+          score: score,
+          answers: answersArray
+        };
+      
+        localStorage.setItem("orsa_responses", JSON.stringify(responses));
+      }
+      </script>
+      
+    <script>
+      const statements = [
+        { text: "The Sun is the largest planet in our solar system.", answer: false },
+        { text: "Python was named after the comedy group Monty Python.", answer: true },
+        { text: "AI can currently experience emotions just like humans.", answer: false },
+        { text: "HTML stands for HyperText Markup Language.", answer: true },
+        { text: "Quantum computers store data in binary bits.", answer: false }
+      ];
+  
+      let current = 0;
+      let timer;
+      let timeLeft = 35;
+      let answered = false;
+  
+      const statementBox = document.getElementById("statementBox");
+      const timerEl = document.getElementById("timer");
+      const resultEl = document.getElementById("result");
+  
+      function startGame() {
+        current = 0;
+        resultEl.textContent = "";
+        showStatement();
+      }
+  
+      function showStatement() {
+        if (current >= statements.length) {
+          statementBox.textContent = "Game Over!";
+          timerEl.textContent = "";
+          resultEl.textContent = "You completed Round 2!";
+          return;
+        }
+  
+        statementBox.textContent = statements[current].text;
+        timeLeft = 35;
+        answered = false;
+        timerEl.textContent = `Time left: ${timeLeft}s`;
+        clearInterval(timer);
+        timer = setInterval(() => {
+          timeLeft--;
+          timerEl.textContent = `Time left: ${timeLeft}s`;
+          if (timeLeft <= 0) {
+            clearInterval(timer);
+            if (!answered) {
+              resultEl.textContent = "Time up!";
+              resultEl.style.color = "orange";
+              current++;
+              setTimeout(showStatement, 1500);
+            }
+          }
+        }, 1000);
+      }
+  
+      function submitAnswer(choice) {
+        if (answered) return;
+        answered = true;
+        clearInterval(timer);
+        const correct = statements[current].answer;
+        if (choice === correct) {
+          resultEl.textContent = "Correct!";
+          resultEl.style.color = "lightgreen";
+          document.getElementById("correctSound").play();
+        } else {
+          resultEl.textContent = "Wrong!";
+          resultEl.style.color = "tomato";
+          document.getElementById("wrongSound").play();
+        }
+        current++;
+        setTimeout(() => {
+          resultEl.textContent = "";
+          showStatement();
+        }, 2000);
+        saveTeamResponse("Tech Riddles", score, playerAnswersArray);
+        function saveTeamResponse(round, score, answers) {
+  const teamName = localStorage.getItem("teamName");
+  const department = localStorage.getItem("department");
+
+  if (!teamName || !department) return;
+
+  let stored = JSON.parse(localStorage.getItem("orsa_responses")) || {};
+
+  if (!stored[teamName]) {
+    stored[teamName] = {
+      department: department,
+      rounds: {}
+    };
+  }
+
+  stored[teamName].rounds[round] = {
+    score: score,
+    answers: answers
+  };
+
+  localStorage.setItem("orsa_responses", JSON.stringify(stored));
+}
+
+      }
+    </script>
+  </body>
+  </html>
