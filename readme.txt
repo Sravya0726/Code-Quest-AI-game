@@ -1,0 +1,1 @@
+Instructions to run the site locally and host it for free.
